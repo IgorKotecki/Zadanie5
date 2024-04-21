@@ -3,7 +3,7 @@ namespace WebApplication2.Animals;
 public interface IAnimalService
 {
     public IEnumerable<Animal> GetAllAnimals(string orderBy);
-    public bool AddAnimal(CreateAnimalDTO dto);
+    public int AddAnimal(Animal animal);
     public Animal GetOneAnimal(int id);
     public int UpdateAnimal(Animal animal);
     public int DeleteAnimal(int id);
@@ -23,9 +23,9 @@ public class AnimalService : IAnimalService
         return _animalRepository.GetAllAnimals(orderBy);
     }
 
-    public bool AddAnimal(CreateAnimalDTO dto)
+    public int AddAnimal(Animal animal)
     {
-        return _animalRepository.CreateAnimal(dto.Name, dto.Description, dto.Category, dto.Area);
+        return _animalRepository.CreateAnimal(animal);
     }
 
     public Animal GetOneAnimal(int id)

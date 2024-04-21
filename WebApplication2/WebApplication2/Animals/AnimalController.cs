@@ -15,7 +15,7 @@ public class AnimalController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateAnimal([FromBody] CreateAnimalDTO dto)
+    public IActionResult CreateAnimal(Animal animal)
     {
         
         if (!ModelState.IsValid)
@@ -23,8 +23,8 @@ public class AnimalController : ControllerBase
             return BadRequest(ModelState);
         }
         
-        var success = _animalService.AddAnimal(dto);
-        return success ? StatusCode(StatusCodes.Status201Created) : Conflict();
+        var success = _animalService.AddAnimal(animal);
+        return StatusCode(StatusCodes.Status201Created);
     }
 
     [HttpGet]

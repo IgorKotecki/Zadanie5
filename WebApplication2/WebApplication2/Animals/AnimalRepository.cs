@@ -5,7 +5,7 @@ namespace WebApplication2.Animals;
 public interface IAnimalRepository
 {
     public IEnumerable<Animal> GetAllAnimals(string orderBy);
-    public bool CreateAnimal(string name, string description, string category, string area);
+    public int CreateAnimal(Animal animal);
     public Animal GetOneAnimal(int id);
     public int UpdateAnimal(Animal animal);
     public int DeleteAnimal(int id);
@@ -47,8 +47,11 @@ public class AnimalRepository : IAnimalRepository
         SqlConnection connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
         connection.Open();
 
-        var safeOrderBy = new string[] {"Name","Description","Category","Area"}.Contains(orderBy) ? orderBy : "Name";
-        using var command = new SqlCommand($"SELECT Name, Description, Category, Area FROM Animal ORDER BY {safeOrderBy}", connection);
+        //var safeOrderBy = new string[] {"Name","Description","Category","Area"}.Contains(orderBy) ? orderBy : "Name";
+        var defaultOrderBy = "Name";
+        var safeOrderBy = string.IsNullOrEmpty(orderBy) || !new[] { "Name", "Description", "Category", "Area" }.Contains(orderBy) ? defaultOrderBy : orderBy;
+        using var command = new SqlCommand($"SELECT Name, Description, CATEGORY, AREA FROM Animal ORDER BY {safeOrderBy}", connection);
+        
         using var reader = command.ExecuteReader();
 
         var animals = new List<Animal>();
@@ -65,22 +68,21 @@ public class AnimalRepository : IAnimalRepository
         return animals;
     }
 
-    public bool CreateAnimal(string name,string description,string category,string area)
+    public int CreateAnimal(Animal animal)
     {
-        using var connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
-        connection.Open();
-
-        using var command = new SqlCommand($"INSERT INTO Animal (Name,Description,Category,Area) Values (@name, @description, @category, @area)",connection);
+        using var con = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
+        con.Open();
         
-        command.Parameters.AddWithValue("@name", name);
-        command.Parameters.AddWithValue("@description", description);
-        command.Parameters.AddWithValue("@category", category);
-        command.Parameters.AddWithValue("@area", area);
+        using var cmd = new SqlCommand();
+        cmd.Connection = con;
+        cmd.CommandText = "INSERT INTO Animal(Name, Description, Category, Area) VALUES(@Name, @Desc, @Cat, @Area)";
+        cmd.Parameters.AddWithValue("@Name", animal.Name);
+        cmd.Parameters.AddWithValue("@Desc", animal.Description);
+        cmd.Parameters.AddWithValue("@Cat", animal.Category);
+        cmd.Parameters.AddWithValue("@Area", animal.Area);
         
-        var affectedRows = command.ExecuteNonQuery();
-        
-        connection.Close();
-        return affectedRows == 1;
+        var affectedCount = cmd.ExecuteNonQuery();
+        return affectedCount;
     }
 
     public int DeleteAnimal(int id)
