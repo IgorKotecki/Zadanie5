@@ -47,11 +47,10 @@ public class AnimalRepository : IAnimalRepository
         SqlConnection connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
         connection.Open();
 
-        //var safeOrderBy = new string[] {"Name","Description","Category","Area"}.Contains(orderBy) ? orderBy : "Name";
         var defaultOrderBy = "Name";
         var safeOrderBy = string.IsNullOrEmpty(orderBy) || !new[] { "Name", "Description", "Category", "Area" }.Contains(orderBy) ? defaultOrderBy : orderBy;
-        using var command = new SqlCommand($"SELECT Name, Description, CATEGORY, AREA FROM Animal ORDER BY {safeOrderBy}", connection);
-        
+        using var command = new SqlCommand($"SELECT IdAnimal, Name, Description, CATEGORY, AREA FROM Animal ORDER BY {safeOrderBy}", connection);
+    
         using var reader = command.ExecuteReader();
 
         var animals = new List<Animal>();
@@ -59,14 +58,18 @@ public class AnimalRepository : IAnimalRepository
         {
             var animal = new Animal()
             {
-                ID = (int)reader["ID"], Name = (string)reader["Name"], Description = (string)reader["Description"],
-                Category = (string)reader["Category"], Area = (string)reader["Area"]!
+                ID = (int)reader["IdAnimal"], 
+                Name = (string)reader["Name"], 
+                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : (string)reader["Description"],
+                Category = (string)reader["Category"], 
+                Area = (string)reader["Area"]
             };
             animals.Add(animal);
         }
         connection.Close();
         return animals;
     }
+
 
     public int CreateAnimal(Animal animal)
     {
