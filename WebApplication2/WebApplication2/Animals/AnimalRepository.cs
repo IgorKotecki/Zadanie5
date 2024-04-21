@@ -25,15 +25,16 @@ public class AnimalRepository : IAnimalRepository
         SqlConnection connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
         connection.Open();
 
-        using var command = new SqlCommand($"SELECT Name, Description, Category, Area FROM Animal WHERE IdAnimal = {id}", connection);
+        using var command = new SqlCommand($"SELECT IdAnimal, Name, Description, Category, Area FROM Animal WHERE IdAnimal=@id", connection);
         
         command.Parameters.AddWithValue("@id", id);
         
         using var reader = command.ExecuteReader();
+        
         if (!reader.Read()) return null;
         
         var animal = new Animal() 
-        { ID = (int)reader["ID"], Name = (string)reader["Name"], Description = (string)reader["Description"], 
+        { ID = (int)reader["IdAnimal"], Name = (string)reader["Name"], Description = (string)reader["Description"], 
             Category = (string)reader["Category"], Area = (string)reader["Area"]!
         };
         
@@ -69,7 +70,7 @@ public class AnimalRepository : IAnimalRepository
         using var connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
         connection.Open();
 
-        using var command = new SqlCommand($"INSERT INTO Animal (Name,Description,Category,Area) Values (name, description,category,area)",connection);
+        using var command = new SqlCommand($"INSERT INTO Animal (Name,Description,Category,Area) Values (@name, @description, @category, @area)",connection);
         
         command.Parameters.AddWithValue("@name", name);
         command.Parameters.AddWithValue("@description", description);
@@ -99,7 +100,7 @@ public class AnimalRepository : IAnimalRepository
         using var connection = new SqlConnection(_configuration["ConnectionStrings:DefaultConnection"]);
         connection.Open();
 
-        using var command = new SqlCommand("UPDATE Animal SET Name=@name,Description=@Description,Category=@category,Area=@area WHERE IdAnimal=@Id",connection);
+        using var command = new SqlCommand("UPDATE Animal SET Name = @name, Description = @description, Category = @category, Area = @area WHERE IdAnimal = @Id", connection);
         command.Parameters.AddWithValue("@Id", animal.ID);
         command.Parameters.AddWithValue("@name", animal.Name);
         command.Parameters.AddWithValue("@description", animal.Description);
